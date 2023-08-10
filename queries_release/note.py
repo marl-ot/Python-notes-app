@@ -30,6 +30,7 @@ class NoteManager:
     def save_notes(self):
         with open(self.filename, 'w') as file:
             json.dump(self.notes, file, default=self._note_encoder)
+        print("\nЗаметка сохранена")
 
     def _note_encoder(self, note):
         return {'id': note.id, 'title': note.title, 'content': note.content, 'creation_date': note.creation_date.strftime('%Y-%m-%d %H:%M:%S'), 'last_modified': note.last_modified.strftime('%Y-%m-%d %H:%M:%S') if note.last_modified else None}
