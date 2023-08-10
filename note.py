@@ -3,10 +3,12 @@ from datetime import datetime
 
 
 class Note:
-    def __init__(self, title, content, date):
+    def __init__(self, id, title, content, creation_date, last_modified=None):
+        self.id = id
         self.title = title
         self.content = content
-        self.date = date
+        self.creation_date = creation_date
+        self.last_modified = last_modified
 
 
 class NoteManager:
@@ -30,18 +32,23 @@ class NoteManager:
             json.dump(self.notes, file, default=self._note_encoder)
 
     def _note_encoder(self, note):
-        return {'title': note.title, 'content': note.content, 'date': note.date.strftime('%Y-%m-%d %H:%M:%S')}
+        return {'id': note.id, 'title': note.title, 'content': note.content, 'creation_date': note.creation_date.strftime('%Y-%m-%d %H:%M:%S'), 'last_modified': note.last_modified.strftime('%Y-%m-%d %H:%M:%S') if note.last_modified else None}
 
     def create_note(self, title, content):
         current_date = datetime.now()
-        note = Note(title, content, current_date)
+        new_id = len(self.notes) + 1
+        note = Note(new_id, title, content, current_date)
         self.notes.append(note)
         self.save_notes()
 
     def list_notes(self, date_filter=None):
+        if not self.notes:
+            print("\nНет заметок")
+            return 0
         for idx, note in enumerate(self.notes):
-            if date_filter is None or note.date.date() == date_filter.date():
-                print(f"\n{idx + 1}. {note.title} ({note.date.strftime('%Y-%m-%d %H:%M:%S')})")
+            if date_filter is None or note.creation_date.date() == date_filter.date():
+                last_modified_str = note.last_modified.strftime('%Y-%m-%d %H:%M:%S') if note.last_modified else "Нет данных"
+                print(f"\n{idx + 1}. {note.title} (Создано: {note.creation_date.strftime('%Y-%m-%d %H:%M:%S')}, Последнее изменение: {last_modified_str})")
 
     def read_note(self, index):
         if 0 <= index < len(self.notes):
@@ -53,6 +60,7 @@ class NoteManager:
     def edit_note(self, index, new_content):
         if 0 <= index < len(self.notes):
             self.notes[index].content = new_content
+            self.notes[index].last_modified = datetime.now()
             self.save_notes()
             print("\nЗаметка обновлена")
         else:
